@@ -1,3 +1,6 @@
+# Warning
+Any bugs related to app. I'm no longer to work on app. However I will continue fix any related to server sync bug.
+
 # sync-mangayomi
 
 A self-hostable sync server for [Mangayomi](https://github.com/kodjodevf/mangayomi): accounts, invite-gated registration, and the website that goes with it. Not the official hosted instance; anyone can run their own copy of this.
