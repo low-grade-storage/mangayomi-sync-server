@@ -304,7 +304,7 @@ enum Status {
 model CatalogEntry {
   id          BigInt   @id @default(autoincrement())
   source      String?
-  sourceId    Int?
+  sourceId    BigInt?
   link        String?
   itemType    ItemType
   name        String?

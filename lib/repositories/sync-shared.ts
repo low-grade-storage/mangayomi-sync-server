@@ -136,6 +136,14 @@ export function fromBigIntId(n: bigint): number {
   return Number(n);
 }
 
+// sourceId is BigInt in the DB (some sources use unsigned 32-bit hashes that overflow Postgres int4) but stays a plain number on the wire.
+export function toBigIntIdOrNull(n: number | null | undefined): bigint | null {
+  return n === null || n === undefined ? null : BigInt(n);
+}
+export function fromBigIntIdOrNull(n: bigint | null): number | null {
+  return n === null ? null : Number(n);
+}
+
 // Only overwrites when the incoming row is actually newer, and reports whether it was so the pull side can skip echoing it back.
 export async function upsertIfNewer<
   Row extends { id: bigint; updatedAt: bigint },

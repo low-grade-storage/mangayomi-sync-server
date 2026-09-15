@@ -12,6 +12,7 @@ import {
   toBigIntMsOrNull,
   toBigIntId,
   fromBigIntId,
+  toBigIntIdOrNull,
   upsertIfNewer,
 } from "./sync-shared";
 
@@ -24,7 +25,7 @@ async function resolveCatalogEntry(
   const link = m.link ?? null;
   const data: Prisma.CatalogEntryUncheckedCreateInput = {
     source: m.source ?? null,
-    sourceId: m.sourceId ?? null,
+    sourceId: toBigIntIdOrNull(m.sourceId),
     link,
     itemType: m.itemType,
     name: m.name ?? null,

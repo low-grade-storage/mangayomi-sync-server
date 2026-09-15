@@ -14,6 +14,7 @@ import {
   fromBigIntMsOrNull,
   fromBigIntId,
   toBigIntId,
+  fromBigIntIdOrNull,
 } from "./sync-shared";
 
 // Pull side: everything changed since `since` minus this request's own upload, paginated via hasMore + cursor.
@@ -156,7 +157,7 @@ export async function pullManga(
     rows: page.map((r) => ({
       clientId: fromBigIntId(r.clientId),
       source: r.catalogEntry.source,
-      sourceId: r.catalogEntry.sourceId,
+      sourceId: fromBigIntIdOrNull(r.catalogEntry.sourceId),
       link: r.catalogEntry.link,
       itemType: r.catalogEntry.itemType,
       name: r.catalogEntry.name,
