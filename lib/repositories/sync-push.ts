@@ -272,18 +272,24 @@ export async function upsertChapters(
   const applied = new Set<number>();
   const idByClientId = new Map<number, bigint>();
   const remap = new Map<number, number>();
+  const mangaCatalogEntryIdCache = new Map<bigint, bigint | null>();
   for (const row of rows) {
     const mangaId = mangaIdByClientId.get(row.mangaClientId);
     if (mangaId === undefined) continue; // orphaned reference, nothing to attach to
 
-    const manga = await client.manga.findUnique({
-      where: { id: mangaId },
-      select: { catalogEntryId: true },
-    });
-    if (!manga) continue;
+    let catalogEntryId = mangaCatalogEntryIdCache.get(mangaId);
+    if (catalogEntryId === undefined) {
+      const manga = await client.manga.findUnique({
+        where: { id: mangaId },
+        select: { catalogEntryId: true },
+      });
+      catalogEntryId = manga?.catalogEntryId ?? null;
+      mangaCatalogEntryIdCache.set(mangaId, catalogEntryId);
+    }
+    if (!catalogEntryId) continue;
     const catalogChapterId = await resolveCatalogChapter(
       client,
-      manga.catalogEntryId,
+      catalogEntryId,
       row,
     );
 
@@ -437,6 +443,7 @@ export async function upsertUpdates(
   mangaIdByClientId: Map<number, bigint>,
 ): Promise<Set<number>> {
   const applied = new Set<number>();
+  const mangaCatalogEntryIdCache = new Map<bigint, bigint | null>();
   for (const row of rows) {
     const mangaId = mangaIdByClientId.get(row.mangaClientId);
     if (mangaId === undefined) continue;
@@ -444,14 +451,19 @@ export async function upsertUpdates(
     // Best-effort match by (mangaId, chapterName) against the shared catalog, same as the client does locally.
     let chapterId: bigint | null = null;
     if (row.chapterName) {
-      const manga = await client.manga.findUnique({
-        where: { id: mangaId },
-        select: { catalogEntryId: true },
-      });
-      if (manga) {
+      let catalogEntryId = mangaCatalogEntryIdCache.get(mangaId);
+      if (catalogEntryId === undefined) {
+        const manga = await client.manga.findUnique({
+          where: { id: mangaId },
+          select: { catalogEntryId: true },
+        });
+        catalogEntryId = manga?.catalogEntryId ?? null;
+        mangaCatalogEntryIdCache.set(mangaId, catalogEntryId);
+      }
+      if (catalogEntryId) {
         const catalogChapter = await client.catalogChapter.findFirst({
           where: {
-            catalogEntryId: manga.catalogEntryId,
+            catalogEntryId,
             name: row.chapterName,
           },
           select: { id: true },
